@@ -26,7 +26,7 @@ def generate_answer(prompt: str) -> str:
     Отправляет промпт в LLM и возвращает сгенерированный ответ.
     """
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",  # заменяется на название локальной модели, если нужно
+        model="lmstudio-community/Mistral-7B-Instruct-v0.3-GGUF",  # заменяется на название локальной модели, если нужно
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
     )

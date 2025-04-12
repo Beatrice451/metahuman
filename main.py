@@ -21,6 +21,7 @@ def main():
     relevant_chunks = retrieve_relevant_chunks(QUESTION, indexed_chunks)
 
     prompt = build_prompt(QUESTION, relevant_chunks)
+    print("Думоем")
     answer = generate_answer(prompt)
 
     print("\n--- Ответ ---\n")
