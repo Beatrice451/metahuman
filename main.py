@@ -1,44 +1,30 @@
 from repo_util import clone_repo, get_all_code_files
 from document_indexer import split_file_into_chunks, embed_chunks
 from retriever import retrieve_relevant_chunks
+from qa_engine import build_prompt, generate_answer
+
+REPO_URL = "https://github.com/Beatrice451/metahuman"  # замени на нужный
+REPO_PATH = "repo/cloned_repo"
+QUESTION = "Что делает этот проект?"  # пример запроса
 
 def main():
-    print("🔗 Git RAG System")
-    # repo_url = input("Введите ссылку на публичный репозиторий: ").strip()
-    repo_url = "https://github.com/Beatrice451/metahuman"
 
-    # Шаг 1. Клонируем репозиторий
-    print("📥 Клонируем репозиторий...")
-    repo_path = clone_repo(repo_url)
+    path = clone_repo(REPO_URL, REPO_PATH)
 
-    # Шаг 2. Получаем список исходных файлов
-    code_files = get_all_code_files(repo_path)
-    print(f"📂 Найдено исходных файлов: {len(code_files)}")
-
-    # Шаг 3. Разбиваем файлы на чанки
+    all_files = get_all_code_files(path)
     chunks = []
-    for file in code_files:
+    for file in all_files:
         chunks.extend(split_file_into_chunks(file))
 
-    print(f"✂️ Получено чанков: {len(chunks)}")
+    indexed_chunks = embed_chunks(chunks)
 
-    # Шаг 4. Создаём embedding для всех чанков
-    embeddings = embed_chunks(chunks)
-    print("✅ Embedding завершены")
+    relevant_chunks = retrieve_relevant_chunks(QUESTION, indexed_chunks)
 
-    # Шаг 5. Вопрос пользователя
-    while True:
-        question = input("\n💬 Введите вопрос (или 'exit' для выхода): ").strip()
-        if question.lower() in ["exit", "quit"]:
-            break
+    prompt = build_prompt(QUESTION, relevant_chunks)
+    answer = generate_answer(prompt)
 
-        # Шаг 6. Получение релевантных чанков
-        top_chunks = retrieve_relevant_chunks(question, embeddings)
-
-        print("\n🔎 Наиболее релевантные фрагменты:")
-        for chunk in top_chunks:
-            print(f"\n📄 {chunk['source']}")
-            print(chunk["text"])
+    print("\n--- Ответ ---\n")
+    print(answer)
 
 if __name__ == "__main__":
     main()
