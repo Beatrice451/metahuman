@@ -3,9 +3,17 @@ from pathlib import Path
 from typing import List, Tuple
 from tqdm import tqdm
 from dotenv import load_dotenv
-from config import CHUNK_SIZE
+from config import CHUNK_SIZE, BASE_URL, OPENAI_API_KEY
+from embedding_utils import get_embedding
 
+# библиотека OpenAI по умолчанию ищет ключ в переменных окружения, поэтому загружаем их
 load_dotenv()
+
+client = openai.OpenAI(
+    base_url=BASE_URL,
+    api_key=OPENAI_API_KEY
+)
+
 
 def split_file_into_chunks(file_path: Path, chunk_size: int = CHUNK_SIZE) -> List[Tuple[str, str]]:
 
@@ -23,16 +31,10 @@ def split_file_into_chunks(file_path: Path, chunk_size: int = CHUNK_SIZE) -> Lis
 def embed_chunks(chunks: List[Tuple[str, str]]) -> List[dict]:
     embeddings = []
     for text, chunk_id in tqdm(chunks, desc="Embedding chunks"):
-        try:
-            response = openai.embeddings.create(
-                model="text-embedding-3-small",
-                input=text
-            )
-            embeddings.append({
-                "vector": response.data[0].embedding,
-                "text": text,
-                "source": chunk_id
-            })
-        except Exception as e:
-            print(e)
+        embedding = get_embedding(text)
+        embeddings.append({
+            "vector": embedding,
+            "text": text,
+            "source": chunk_id
+        })
     return embeddings

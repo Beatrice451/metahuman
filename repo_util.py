@@ -1,5 +1,8 @@
+import os
 import re
 import shutil
+import stat
+
 from git import Repo
 from pathlib import Path
 
@@ -36,7 +39,7 @@ def clone_repo(repo_url: str, dest_folder: str = "repo/cloned_repo") -> Path:
 
     dest = Path(dest_folder)
     if dest.exists():
-        shutil.rmtree(dest)
+        delete_repo_folder(str(dest))
     Repo.clone_from(repo_url, dest)
     return dest
 
@@ -57,3 +60,12 @@ def get_all_code_files(repo_path: Path, extensions=None) -> list[Path]:
     if extensions is None:
         extensions = ['.py', '.js', '.ts', '.java', '.cpp', '.md']
     return [p for p in repo_path.rglob("*") if p.suffix in extensions and p.is_file()]
+
+def remove_readonly(func, path, _):
+    """Исправляет ошибку доступа при удалении защищённых файлов на Windows"""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+def delete_repo_folder(path: str):
+    if os.path.exists(path):
+        shutil.rmtree(path, onerror=remove_readonly)
